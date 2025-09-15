@@ -1,0 +1,65 @@
+---
+title: ""
+author: ""
+output: 
+  html_document:
+    theme: flatly
+    toc: false
+    toc_float: false
+    code_folding: show
+---
+
+# 1) Experimento em DIC
+
+```{r setup, include=T}
+# Carregar pacotes sem exibir avisos ou mensagens
+suppressPackageStartupMessages({
+  suppressWarnings({
+    library(agricolae)
+    library(ggplot2)
+    library(dplyr)
+    library(kableExtra)
+  })
+})
+
+
+# Criando o data frame com os dados experimentais
+dados <- data.frame(
+  Trat = rep(c("Controle", "Aditivo", "Oleo", "Extrato"), each = 5),
+  Resp = c(
+    400, 405, 403, 398, 410,    # Controle
+    730, 715, 719, 735, 729,    # Aditivo Orgânico
+    500, 510, 480, 515, 490,    # Óleo Essencial
+    520, 530, 500, 515, 490     # Extrato
+  )
+)
+
+# 2) Ajuste do Modelo ANOVA
+
+# Ajustando o modelo de ANOVA
+m <- aov(Resp ~ Trat, data = dados)
+
+# Resumo da ANOVA
+anova_res <- summary(m)
+anova_res
+
+#3) Teste de Tukey
+
+# Comparações múltiplas de Tukey (base R)
+tukey <- TukeyHSD(m)
+
+tukey
+
+# Teste de Tukey com agricolae (grupos de letras)
+tukey.agricolae <- HSD.test(m, "Trat", group = TRUE)
+
+# Comparação múltiplas de HSD de Tukey
+tukey.agricolae$groups %>%
+  kbl(caption = "Agrupamento de Médias - Teste de Tukey (5%)") %>%
+  kable_styling(full_width = TRUE, bootstrap_options = c("striped", "hover"))
+
+#4) Visualização dos Resultados
+
+# Gráfico dos grupos de médias (agricolae)
+plot(tukey.agricolae, main = "Grupos de Médias - Teste de Tukey")
+```
